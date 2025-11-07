@@ -11,7 +11,7 @@ const ApiKeys = () => {
             Manage all your API keys for integration
           </p>
         </div>
-        <ApiKeysSection fullView />
+        <ApiKeysSection fullView apiKeys={[]} />
       </div>
     </DashboardLayout>
   );

@@ -11,7 +11,7 @@ const Invoices = () => {
             View all your transaction history and earnings
           </p>
         </div>
-        <InvoicesSection fullView />
+        <InvoicesSection fullView  invoices={[]} />
       </div>
     </DashboardLayout>
   );

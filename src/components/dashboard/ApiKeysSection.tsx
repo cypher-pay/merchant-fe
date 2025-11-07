@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Key, Plus, Copy, Check, Trash2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ApiKey {
   id: string;
@@ -16,9 +17,10 @@ interface ApiKey {
 
 interface ApiKeysSectionProps {
   fullView?: boolean;
+  apiKeys?: ApiKey[];
 }
 
-const ApiKeysSection = ({ fullView = false }: ApiKeysSectionProps) => {
+const ApiKeysSection = ({ fullView = false, apiKeys: fetchedApiKeys }: ApiKeysSectionProps) => {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([
     {
       id: "1",
@@ -32,6 +34,15 @@ const ApiKeysSection = ({ fullView = false }: ApiKeysSectionProps) => {
   const [newKeyName, setNewKeyName] = useState("");
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<ApiKey | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate API loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   const createApiKey = () => {
     if (!newKeyName.trim()) {
@@ -67,6 +78,7 @@ const ApiKeysSection = ({ fullView = false }: ApiKeysSectionProps) => {
   };
 
   const maskKey = (key: string) => {
+    if(!key)return "";
     return key.substring(0, 10) + "•".repeat(20) + key.substring(key.length - 4);
   };
 
@@ -95,7 +107,22 @@ const ApiKeysSection = ({ fullView = false }: ApiKeysSectionProps) => {
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {(fullView ? apiKeys : apiKeys.slice(0, 3)).map((apiKey) => (
+          {isLoading ? (
+            <>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="p-4 rounded-lg bg-secondary/50 border border-border/50 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-8 w-8" />
+                  </div>
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+              ))}
+            </>
+          ) : (
+            <>
+              {(fullView ? apiKeys : apiKeys.slice(0, 3)).map((apiKey) => (
             <div
               key={apiKey.id}
               className="p-4 rounded-lg bg-secondary/50 border border-border/50 space-y-2"
@@ -118,8 +145,8 @@ const ApiKeysSection = ({ fullView = false }: ApiKeysSectionProps) => {
                 Created {new Date(apiKey.createdAt).toLocaleDateString()}
               </p>
             </div>
-          ))}
-          {!fullView && apiKeys.length > 3 && (
+              ))}
+              {!fullView && apiKeys.length > 3 && (
             <Button
               variant="outline"
               className="w-full mt-4"
@@ -127,6 +154,8 @@ const ApiKeysSection = ({ fullView = false }: ApiKeysSectionProps) => {
             >
               Show More ({apiKeys.length - 3} more)
             </Button>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

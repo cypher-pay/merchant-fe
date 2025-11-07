@@ -1,7 +1,9 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FileText, TrendingUp } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Invoice {
   id: string;
@@ -13,9 +15,20 @@ interface Invoice {
 
 interface InvoicesSectionProps {
   fullView?: boolean;
+  invoices?: Invoice[];
 }
 
-const InvoicesSection = ({ fullView = false }: InvoicesSectionProps) => {
+const InvoicesSection = ({ fullView = false, invoices: fetchedInvoices }: InvoicesSectionProps) => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate API loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
   const invoices: Invoice[] = [
     {
       id: "INV-001",
@@ -77,7 +90,25 @@ const InvoicesSection = ({ fullView = false }: InvoicesSectionProps) => {
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {(fullView ? invoices : invoices.slice(0, 3)).map((invoice) => (
+          {isLoading ? (
+            <>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="p-4 rounded-lg bg-secondary/50 border border-border/50 space-y-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-5 w-20" />
+                      <Skeleton className="h-5 w-16" />
+                    </div>
+                    <Skeleton className="h-6 w-20" />
+                  </div>
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+              ))}
+            </>
+          ) : (
+            <>
+              {(fullView ? invoices : invoices.slice(0, 3)).map((invoice) => (
             <div
               key={invoice.id}
               className="p-4 rounded-lg bg-secondary/50 border border-border/50 hover:border-primary/50 transition-colors"
@@ -107,8 +138,8 @@ const InvoicesSection = ({ fullView = false }: InvoicesSectionProps) => {
                 })}
               </p>
             </div>
-          ))}
-          {!fullView && invoices.length > 3 && (
+              ))}
+              {!fullView && invoices.length > 3 && (
             <Button
               variant="outline"
               className="w-full mt-4"
@@ -116,6 +147,8 @@ const InvoicesSection = ({ fullView = false }: InvoicesSectionProps) => {
             >
               Show More ({invoices.length - 3} more)
             </Button>
+              )}
+            </>
           )}
         </div>
       </CardContent>

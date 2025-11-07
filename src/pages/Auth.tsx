@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,12 @@ const Auth = () => {
   const [isExistingUser, setIsExistingUser] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(()=>{
+    const token = localStorage.getItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
+    if(token){
+        navigate("/dashboard");
+    }
+  },[])
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
 

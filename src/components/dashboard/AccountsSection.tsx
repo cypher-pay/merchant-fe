@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Wallet, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Account {
   id: string;
@@ -16,20 +17,23 @@ interface Account {
 
 interface AccountsSectionProps {
   fullView?: boolean;
+  accounts?: Account[];
 }
 
-const AccountsSection = ({ fullView = false }: AccountsSectionProps) => {
-  const [accounts, setAccounts] = useState<Account[]>([
-    {
-      id: "1",
-      accountName: "Main Wallet",
-      publicKey: "0x" + Math.random().toString(16).substring(2, 42),
-      createdAt: new Date().toISOString(),
-    },
-  ]);
+const AccountsSection = ({ fullView = false, accounts: fetchedAccounts }: AccountsSectionProps) => {
+  const [accounts, setAccounts] = useState<Account[]>(fetchedAccounts || []);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [accountName, setAccountName] = useState("");
   const [publicKey, setPublicKey] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate API loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const createAccount = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,9 +131,24 @@ const AccountsSection = ({ fullView = false }: AccountsSectionProps) => {
             </DialogContent>
           </Dialog>
         </div>
-      </CardHeader>
+        </CardHeader>
       <CardContent className="space-y-3">
-        {(fullView ? accounts : accounts.slice(0, 3)).map((account) => (
+        {isLoading ? (
+          <>
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="p-4 rounded-lg bg-secondary/50 border border-border/50 space-y-2">
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-8 w-8" />
+                </div>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            ))}
+          </>
+        ) : (
+          <>
+            {(fullView ? accounts : accounts.slice(0, 3)).map((account) => (
           <div
             key={account.id}
             className="p-4 rounded-lg bg-secondary/50 border border-border/50 space-y-2"
@@ -152,8 +171,8 @@ const AccountsSection = ({ fullView = false }: AccountsSectionProps) => {
               Created {new Date(account.createdAt).toLocaleDateString()}
             </p>
           </div>
-        ))}
-        {!fullView && accounts.length > 3 && (
+            ))}
+            {!fullView && accounts.length > 3 && (
           <Button
             variant="outline"
             className="w-full mt-4"
@@ -161,6 +180,8 @@ const AccountsSection = ({ fullView = false }: AccountsSectionProps) => {
           >
             Show More ({accounts.length - 3} more)
           </Button>
+            )}
+          </>
         )}
       </CardContent>
     </Card>
