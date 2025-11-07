@@ -8,11 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Shield, Wallet } from "lucide-react";
 import { toast } from "sonner";
+import axios from "axios";
 
 const Auth = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<"phone" | "verify">("phone");
-  const [countryCode, setCountryCode] = useState("+1");
+  const [countryCode, setCountryCode] = useState("+91");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState("");
   const [name, setName] = useState("");
@@ -21,24 +22,31 @@ const Auth = () => {
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!phoneNumber || phoneNumber.length < 10) {
       toast.error("Please enter a valid phone number");
       return;
     }
 
     setIsLoading(true);
-    
-    // Simulate OTP generation and user check
-    setTimeout(() => {
-      const fullPhone = countryCode + phoneNumber;
-      const existingUsers = JSON.parse(localStorage.getItem("merchants") || "[]");
-      const userExists = existingUsers.some((u: any) => u.phone === fullPhone);
-      
-      setIsExistingUser(userExists);
-      setStep("verify");
-      setIsLoading(false);
-      toast.success("OTP sent to your phone number");
-    }, 1000);
+
+    try{
+        const fullPhoneNumber = countryCode + phoneNumber;
+        const { data } = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/get-otp`, { phoneNumber: fullPhoneNumber });
+        if(data.success){
+            const userExists = data.userExists;
+            setIsExistingUser(userExists);
+            setStep("verify");
+            setIsLoading(false);
+            toast.success("OTP sent to your phone number");
+            return;
+        }else {
+            toast.error("Failed to send OTP. Please try again.");
+        }
+    }catch(error){
+        toast.error("Failed to send OTP. Please try again.");
+    }
+    setIsLoading(false);
   };
 
   const handleVerifyOTP = async (e: React.FormEvent) => {
@@ -56,37 +64,41 @@ const Auth = () => {
 
     setIsLoading(true);
 
-    // Simulate OTP verification
-    setTimeout(() => {
-      if (otp === "123456") { // Mock OTP for demo
-        const fullPhone = countryCode + phoneNumber;
-        const merchants = JSON.parse(localStorage.getItem("merchants") || "[]");
-        
-        if (!isExistingUser) {
-          // Register new merchant
-          const newMerchant = {
-            id: Date.now().toString(),
+    try{
+        const originalPhoneNumber = countryCode + phoneNumber;
+        const payload = isExistingUser ? {
+            phoneNumber: originalPhoneNumber,
+            otp,
+        } : {
             name,
-            phone: fullPhone,
-            createdAt: new Date().toISOString(),
-          };
-          merchants.push(newMerchant);
-          localStorage.setItem("merchants", JSON.stringify(merchants));
-          localStorage.setItem("currentMerchant", JSON.stringify(newMerchant));
-          toast.success("Account created successfully!");
-        } else {
-          // Login existing merchant
-          const merchant = merchants.find((m: any) => m.phone === fullPhone);
-          localStorage.setItem("currentMerchant", JSON.stringify(merchant));
-          toast.success("Welcome back!");
+            phoneNumber: originalPhoneNumber,
+            otp,
         }
-        
-        navigate("/dashboard");
-      } else {
-        toast.error("Invalid OTP. Use 123456 for demo");
-      }
-      setIsLoading(false);
-    }, 1000);
+        const {data} = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/login`, payload);
+
+        if(data.success){
+            // Set the token and then navigate to dashboard
+            const token = data.token;
+            localStorage.setItem(import.meta.env.VITE_AUTH_TOKEN_KEY, `Bearer ${token}`);
+            if(!isExistingUser){
+                toast.success("Account created successfully!");
+            } else {
+                toast.success("Login Successful!");
+            }
+            setIsLoading(false);
+            navigate("/dashboard");
+            return;
+        }else {
+            toast.error("OTP Verification failed. Please try again.");
+            setIsLoading(false);
+            return;
+        }
+    }catch(error){
+        toast.error("An error occurred. Please try again.");
+        setIsLoading(false);
+        return;
+    }
+
   };
 
   return (
