@@ -1,16 +1,22 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FileText, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import axios from "axios";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface Invoice {
-  id: string;
-  amount: number;
-  status: "paid" | "pending" | "failed";
-  description: string;
-  date: string;
+  invoiceId: string;
+  amount: string;
+  fee: number;
+  status: "CONFIRMED" | "PENDING" | "FAILED" | "PAYMENT_PROCESSING";
+  createdAt: string;
+  tokenAddress: string;
+  callbackUrl: string;
+  accountName: string;
 }
 
 interface InvoicesSectionProps {
@@ -18,51 +24,50 @@ interface InvoicesSectionProps {
   invoices?: Invoice[];
 }
 
-const InvoicesSection = ({ fullView = false, invoices: fetchedInvoices }: InvoicesSectionProps) => {
+const InvoicesSection = ({ fullView = false }: InvoicesSectionProps) => {
   const [isLoading, setIsLoading] = useState(true);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
 
-  useEffect(() => {
-    // Simulate API loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1200);
-    return () => clearTimeout(timer);
-  }, []);
+  const navigate = useNavigate();
+  useEffect(()=>{
+      const token = localStorage.getItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
+      if(!token){
+          toast.error("Authentication token missing. Please login again.");
+          navigate("/auth");
+          return;
+      }
+      const fetchInvoicesData = async()=>{
+        setIsLoading(true);
+        try{
+            const url = fullView ? `${import.meta.env.VITE_BACKEND_URL}/api/merchant/get-merchant-invoices` : `${import.meta.env.VITE_BACKEND_URL}/api/merchant/get-merchant-invoices?limit=3`;
+            const {data} = await axios.get(url, {
+              headers: {
+                Authorization: token
+              }
+            });
+            if(data.success){
+              setInvoices(data.invoices);
+              setIsLoading(false);
+            }else {
+                setIsLoading(false);
+                localStorage.removeItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
+                toast.error("Failed to fetch your data. Please login again.");
+                navigate("/auth");
+            }
+        }catch(err){
+            setIsLoading(false);
+            localStorage.removeItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
+            toast.error("Failed to fetch your data. Please login again.");
+            navigate("/auth");
+        }
+      }
 
-  const invoices: Invoice[] = [
-    {
-      id: "INV-001",
-      amount: 1250.00,
-      status: "paid",
-      description: "Payment for Premium Plan",
-      date: "2025-01-05",
-    },
-    {
-      id: "INV-002",
-      amount: 750.50,
-      status: "paid",
-      description: "E-commerce Transaction",
-      date: "2025-01-04",
-    },
-    {
-      id: "INV-003",
-      amount: 2100.00,
-      status: "pending",
-      description: "Enterprise Package",
-      date: "2025-01-03",
-    },
-    {
-      id: "INV-004",
-      amount: 450.00,
-      status: "paid",
-      description: "Monthly Subscription",
-      date: "2025-01-02",
-    },
-  ];
+      fetchInvoicesData();
+  },[])
 
   const totalEarnings = invoices
-    .filter((inv) => inv.status === "paid")
-    .reduce((sum, inv) => sum + inv.amount, 0);
+    .filter((inv) => inv.status === "CONFIRMED")
+    .reduce((sum, inv) => sum + parseFloat(inv.amount) * (1 - inv.fee/100), 0);
 
   return (
     <Card className="border-border/50 bg-gradient-card shadow-card">
@@ -75,15 +80,6 @@ const InvoicesSection = ({ fullView = false, invoices: fetchedInvoices }: Invoic
             <div>
               <CardTitle>Recent Invoices</CardTitle>
               <CardDescription>Track your payment history</CardDescription>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-2xl font-bold text-foreground">
-              ${totalEarnings.toFixed(2)}
-            </div>
-            <div className="flex items-center gap-1 text-sm text-success">
-              <TrendingUp className="w-4 h-4" />
-              <span>Total Paid</span>
             </div>
           </div>
         </div>
@@ -110,28 +106,28 @@ const InvoicesSection = ({ fullView = false, invoices: fetchedInvoices }: Invoic
             <>
               {(fullView ? invoices : invoices.slice(0, 3)).map((invoice) => (
             <div
-              key={invoice.id}
+              key={invoice.invoiceId}
               className="p-4 rounded-lg bg-secondary/50 border border-border/50 hover:border-primary/50 transition-colors"
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-sm text-muted-foreground">
-                    {invoice.id}
+                    {invoice.invoiceId.slice(0, 6)}...{invoice.invoiceId.slice(-4)}
                   </span>
                   <Badge
-                    variant={invoice.status === "paid" ? "default" : invoice.status === "pending" ? "secondary" : "destructive"}
-                    className={invoice.status === "paid" ? "bg-success/20 text-success border-success/30" : ""}
+                    variant={invoice.status === "CONFIRMED" ? "default" : invoice.status === "PENDING" ? "secondary" : "destructive"}
+                    className={invoice.status === "CONFIRMED" ? "bg-success/20 text-success border-success/30" : ""}
                   >
                     {invoice.status}
                   </Badge>
                 </div>
                 <span className="text-lg font-bold text-foreground">
-                  ${invoice.amount.toFixed(2)}
+                  ${parseFloat(invoice.amount).toFixed(2)}
                 </span>
               </div>
-              <p className="text-sm text-foreground mb-1">{invoice.description}</p>
+              <p className="text-sm text-foreground mb-1">{invoice.accountName}</p>
               <p className="text-xs text-muted-foreground">
-                {new Date(invoice.date).toLocaleDateString("en-US", {
+                {new Date(invoice.createdAt).toLocaleDateString("en-US", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
@@ -157,3 +153,18 @@ const InvoicesSection = ({ fullView = false, invoices: fetchedInvoices }: Invoic
 };
 
 export default InvoicesSection;
+
+
+// The invoice card should contain these following details of an invoice 
+// {
+//   invoiceId: string;
+//   amount: string;
+//   fee: number;
+//   status: "CONFIRMED" | "PENDING" | "FAILED" | "PAYMENT_PROCESSING";
+//   createdAt: string;
+//   tokenAddress: string;
+//   callbackUrl: string;
+//   accountName: string;
+// }
+// - here the invoiceId will be large hash, and we shouldnt entirely display it .. display the first few characters and the last few characters and then display an info symbol beside it which on hover shows the entire invoiceId , same for the token address
+// - And for amount it will be in wei .. so we need to round it off to 6 decimals and then as above similarly show an info icon beside it which on hover shows the entire fee amount 

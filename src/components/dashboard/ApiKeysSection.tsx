@@ -7,41 +7,57 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Key, Plus, Copy, Check, Trash2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 interface ApiKey {
-  id: string;
   name: string;
-  key: string;
+  environment: "LIVE" | "TEST";
+  key?: string;
   createdAt: string;
 }
 
 interface ApiKeysSectionProps {
   fullView?: boolean;
-  apiKeys?: ApiKey[];
 }
 
-const ApiKeysSection = ({ fullView = false, apiKeys: fetchedApiKeys }: ApiKeysSectionProps) => {
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([
-    {
-      id: "1",
-      name: "Production Key",
-      key: "sk_live_" + Math.random().toString(36).substring(2, 15),
-      createdAt: new Date().toISOString(),
-    },
-  ]);
+const ApiKeysSection = ({ fullView = false }: ApiKeysSectionProps) => {
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isKeyRevealModalOpen, setIsKeyRevealModalOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<ApiKey | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Simulate API loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    useEffect(() => {
+    const fetchApiKeys = async () => {
+      const token = localStorage.getItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
+      if (!token) {
+        toast.error("Authentication token missing. Please login again.");
+        navigate('/auth');
+        return;
+      }
+      try {
+
+        const url = fullView ? `${import.meta.env.VITE_BACKEND_URL}/api/merchant/get-merchant-api-keys` : `${import.meta.env.VITE_BACKEND_URL}/api/merchant/get-merchant-api-keys?limit=3`;
+        const { data } = await axios.get(url, {
+          headers: {
+            Authorization: token
+          }
+        });
+        if (data.success) {
+          setApiKeys(data.apiKeys);
+          setLoading(false);
+        }
+      } catch (error) {
+        toast.error("Failed to fetch API keys");
+        setLoading(false);
+      }
+    }
+
+    fetchApiKeys();
   }, []);
 
   const createApiKey = () => {
@@ -51,9 +67,8 @@ const ApiKeysSection = ({ fullView = false, apiKeys: fetchedApiKeys }: ApiKeysSe
     }
 
     const newKey: ApiKey = {
-      id: Date.now().toString(),
       name: newKeyName,
-      key: "sk_live_" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+      environment: "LIVE",
       createdAt: new Date().toISOString(),
     };
     
@@ -65,8 +80,8 @@ const ApiKeysSection = ({ fullView = false, apiKeys: fetchedApiKeys }: ApiKeysSe
     toast.success("New API key created");
   };
 
-  const deleteApiKey = (id: string) => {
-    setApiKeys(apiKeys.filter((key) => key.id !== id));
+  const deleteApiKey = (name: string) => {
+    setApiKeys(apiKeys.filter((key) => key.name !== name));
     toast.success("API key deleted");
   };
 
@@ -107,7 +122,7 @@ const ApiKeysSection = ({ fullView = false, apiKeys: fetchedApiKeys }: ApiKeysSe
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {isLoading ? (
+          {loading ? (
             <>
               {[1, 2, 3].map((i) => (
                 <div key={i} className="p-4 rounded-lg bg-secondary/50 border border-border/50 space-y-2">
@@ -124,7 +139,7 @@ const ApiKeysSection = ({ fullView = false, apiKeys: fetchedApiKeys }: ApiKeysSe
             <>
               {(fullView ? apiKeys : apiKeys.slice(0, 3)).map((apiKey) => (
             <div
-              key={apiKey.id}
+              key={apiKey.name}
               className="p-4 rounded-lg bg-secondary/50 border border-border/50 space-y-2"
             >
               <div className="flex items-center justify-between">
@@ -132,15 +147,12 @@ const ApiKeysSection = ({ fullView = false, apiKeys: fetchedApiKeys }: ApiKeysSe
                 <Button
                   size="icon"
                   variant="ghost"
-                  onClick={() => deleteApiKey(apiKey.id)}
+                  onClick={() => deleteApiKey(apiKey.name)}
                   className="h-8 w-8 text-destructive hover:text-destructive"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
-              <code className="text-xs text-muted-foreground font-mono block break-all">
-                {maskKey(apiKey.key)}
-              </code>
               <p className="text-xs text-muted-foreground">
                 Created {new Date(apiKey.createdAt).toLocaleDateString()}
               </p>

@@ -7,9 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Wallet, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 interface Account {
-  id: string;
   accountName: string;
   publicKey: string;
   createdAt: string;
@@ -20,19 +21,47 @@ interface AccountsSectionProps {
   accounts?: Account[];
 }
 
-const AccountsSection = ({ fullView = false, accounts: fetchedAccounts }: AccountsSectionProps) => {
-  const [accounts, setAccounts] = useState<Account[]>(fetchedAccounts || []);
+const AccountsSection = ({ fullView = false }: AccountsSectionProps) => {
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [accountName, setAccountName] = useState("");
   const [publicKey, setPublicKey] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Simulate API loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
+    const token = localStorage.getItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
+    if (!token) {
+      navigate("/auth");
+    } else {
+      setIsLoading(true);
+      const fetchAccountsData = async()=>{
+        try{
+            const url = fullView ? `${import.meta.env.VITE_BACKEND_URL}/api/merchant/get-merchant-accounts` : `${import.meta.env.VITE_BACKEND_URL}/api/merchant/get-merchant-accounts?limit=3`;
+            const {data} = await axios.get(url, {
+              headers: {
+                Authorization: token
+              }
+            });
+            if(data.success){
+              setAccounts(data.accounts);
+              setIsLoading(false);
+            }else {
+                localStorage.removeItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
+                toast.error("Failed to fetch your data. Please login again.");
+                setIsLoading(false);
+                navigate("/auth");
+            }
+        }catch(err){
+            localStorage.removeItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
+            toast.error("Failed to fetch your data. Please login again.");
+            setIsLoading(false);
+            navigate("/auth");
+        }
+      }
+
+      fetchAccountsData();
+    }
   }, []);
 
   const createAccount = (e: React.FormEvent) => {
@@ -49,7 +78,6 @@ const AccountsSection = ({ fullView = false, accounts: fetchedAccounts }: Accoun
     }
 
     const newAccount: Account = {
-      id: Date.now().toString(),
       accountName,
       publicKey,
       createdAt: new Date().toISOString(),
@@ -62,8 +90,8 @@ const AccountsSection = ({ fullView = false, accounts: fetchedAccounts }: Accoun
     toast.success("Account created successfully");
   };
 
-  const deleteAccount = (id: string) => {
-    setAccounts(accounts.filter((acc) => acc.id !== id));
+  const deleteAccount = (name: string) => {
+    setAccounts(accounts.filter(account => account.accountName !== name));
     toast.success("Account deleted");
   };
 
@@ -150,7 +178,7 @@ const AccountsSection = ({ fullView = false, accounts: fetchedAccounts }: Accoun
           <>
             {(fullView ? accounts : accounts.slice(0, 3)).map((account) => (
           <div
-            key={account.id}
+            key={account.publicKey}
             className="p-4 rounded-lg bg-secondary/50 border border-border/50 space-y-2"
           >
             <div className="flex items-center justify-between">
@@ -158,7 +186,7 @@ const AccountsSection = ({ fullView = false, accounts: fetchedAccounts }: Accoun
               <Button
                 size="icon"
                 variant="ghost"
-                onClick={() => deleteAccount(account.id)}
+                onClick={() => deleteAccount(account.accountName)}
                 className="h-8 w-8 text-destructive hover:text-destructive"
               >
                 <Trash2 className="w-4 h-4" />
