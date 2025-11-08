@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 interface Account {
+  id?: string;
   accountName: string;
   publicKey: string;
   createdAt: string;
@@ -28,6 +29,7 @@ const AccountsSection = ({ fullView = false }: AccountsSectionProps) => {
   const [publicKey, setPublicKey] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
@@ -64,36 +66,52 @@ const AccountsSection = ({ fullView = false }: AccountsSectionProps) => {
     }
   }, []);
 
-  const createAccount = (e: React.FormEvent) => {
+  const createAccount = async(e: React.FormEvent) => {
     e.preventDefault();
-    
+    setIsCreating(true);
     if (!accountName || !publicKey) {
       toast.error("Please fill all fields");
+      setIsCreating(false);
       return;
     }
 
     if (!publicKey.startsWith("0x")) {
       toast.error("Public key must start with 0x");
+      setIsCreating(false);
       return;
     }
-
+    
     const newAccount: Account = {
       accountName,
       publicKey,
       createdAt: new Date().toISOString(),
     };
-
-    setAccounts([...accounts, newAccount]);
-    setAccountName("");
-    setPublicKey("");
-    setIsDialogOpen(false);
-    toast.success("Account created successfully");
+    const token = localStorage.getItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
+    try{
+      const { data } = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/merchant/create-account`, newAccount, {
+        headers: {
+          Authorization: token
+        }
+      }); 
+      if(data.success){
+        setAccounts([...accounts, data.account]);
+        setAccountName("");
+        setPublicKey("");
+        setIsDialogOpen(false);
+        setIsCreating(false);
+        toast.success("Account created successfully");
+      }else {
+        setAccounts(accounts.filter(acc => acc !== newAccount));
+        setIsCreating(false);
+        toast.error("Failed to create your account. Please try again.");
+      }
+    }catch(err){
+      setAccounts(accounts.filter(acc => acc !== newAccount));
+      setIsCreating(false);
+      toast.error("Failed to create your account. Please try again.");
+    }
   };
 
-  const deleteAccount = (name: string) => {
-    setAccounts(accounts.filter(account => account.accountName !== name));
-    toast.success("Account deleted");
-  };
 
   return (
     <Card className="border-border/50 bg-gradient-card shadow-card">
@@ -151,9 +169,10 @@ const AccountsSection = ({ fullView = false }: AccountsSectionProps) => {
                 </div>
                 <Button
                   type="submit"
+                  disabled={isCreating}
                   className="w-full bg-gradient-primary hover:opacity-90 transition-opacity"
                 >
-                  Create Account
+                  {isCreating ? "Creating Account..." : "Create Account"}
                 </Button>
               </form>
             </DialogContent>
@@ -179,18 +198,10 @@ const AccountsSection = ({ fullView = false }: AccountsSectionProps) => {
             {(fullView ? accounts : accounts.slice(0, 3)).map((account) => (
           <div
             key={account.publicKey}
-            className="p-4 rounded-lg bg-secondary/50 border border-border/50 space-y-2"
+            className="p-4 rounded-lg bg-secondary/50 border border-border/50 space-y-2 hover:border-primary/50 transition-colors"
           >
             <div className="flex items-center justify-between">
               <span className="font-medium text-foreground">{account.accountName}</span>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => deleteAccount(account.accountName)}
-                className="h-8 w-8 text-destructive hover:text-destructive"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
             </div>
             <code className="text-xs text-muted-foreground font-mono block break-all">
               {account.publicKey}

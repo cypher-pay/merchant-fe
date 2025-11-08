@@ -204,9 +204,6 @@ const Auth = () => {
                     </InputOTPGroup>
                   </InputOTP>
                 </div>
-                <p className="text-xs text-muted-foreground text-center">
-                  Demo OTP: 123456
-                </p>
               </div>
               <div className="flex gap-2">
                 <Button

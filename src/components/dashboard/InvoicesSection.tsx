@@ -86,7 +86,7 @@ const InvoicesSection = ({ fullView = false }: InvoicesSectionProps) => {
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold text-foreground">
-              ${totalEarnings.toFixed(2)}
+              {weiToEther(totalEarnings.toString())} ETH
             </div>
             <div className="flex items-center gap-1 text-sm text-success">
               <TrendingUp className="w-4 h-4" />
