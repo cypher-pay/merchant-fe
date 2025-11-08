@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -19,4 +20,11 @@ export const weiToEther = (wei: string, decimals = 6) => {
     }
     return ether.toFixed(decimals);
   }
+};
+
+export const copyToClipboard = (text: string, id: string, setCopiedCode: (id: string | null) => void) => {
+    navigator.clipboard.writeText(text);
+    setCopiedCode(id);
+    toast.success("Copied to clipboard");
+    setTimeout(() => setCopiedCode(null), 2000);
 };
