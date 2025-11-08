@@ -14,7 +14,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem("currentMerchant");
+    localStorage.removeItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
     toast.success("Logged out successfully");
     navigate("/auth");
   };

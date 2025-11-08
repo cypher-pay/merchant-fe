@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Wallet, Plus, Trash2 } from "lucide-react";
+import { Wallet, Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
@@ -80,7 +80,7 @@ const AccountsSection = ({ fullView = false }: AccountsSectionProps) => {
       setIsCreating(false);
       return;
     }
-    
+
     const newAccount: Account = {
       accountName,
       publicKey,
@@ -101,12 +101,10 @@ const AccountsSection = ({ fullView = false }: AccountsSectionProps) => {
         setIsCreating(false);
         toast.success("Account created successfully");
       }else {
-        setAccounts(accounts.filter(acc => acc !== newAccount));
         setIsCreating(false);
         toast.error("Failed to create your account. Please try again.");
       }
     }catch(err){
-      setAccounts(accounts.filter(acc => acc !== newAccount));
       setIsCreating(false);
       toast.error("Failed to create your account. Please try again.");
     }
@@ -172,7 +170,14 @@ const AccountsSection = ({ fullView = false }: AccountsSectionProps) => {
                   disabled={isCreating}
                   className="w-full bg-gradient-primary hover:opacity-90 transition-opacity"
                 >
-                  {isCreating ? "Creating Account..." : "Create Account"}
+              {isCreating ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creating Account
+                </>
+              ) : (
+                "Create Account"
+              )}
                 </Button>
               </form>
             </DialogContent>

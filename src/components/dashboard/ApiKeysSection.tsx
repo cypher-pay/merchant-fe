@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Key, Plus, Copy, Check, Trash2, AlertCircle } from "lucide-react";
+import { Key, Plus, Copy, Check, Trash2, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import axios from "axios";
@@ -31,6 +31,8 @@ const ApiKeysSection = ({ fullView = false }: ApiKeysSectionProps) => {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
+  const [deletingKeyId, setDeletingKeyId] = useState<string | null>(null);
 
     useEffect(() => {
     const fetchApiKeys = async () => {
@@ -61,29 +63,81 @@ const ApiKeysSection = ({ fullView = false }: ApiKeysSectionProps) => {
     fetchApiKeys();
   }, []);
 
-  const createApiKey = () => {
+  const createApiKey = async () => {
+    setIsCreating(true);
     if (!newKeyName.trim()) {
       toast.error("Please enter a name for the API key");
+      setIsCreating(false);
       return;
     }
 
-    const newKey: ApiKey = {
-      name: newKeyName,
-      environment: "LIVE",
-      createdAt: new Date().toISOString(),
-    };
-    
-    setApiKeys([...apiKeys, newKey]);
-    setNewlyCreatedKey(newKey);
-    setIsCreateModalOpen(false);
-    setIsKeyRevealModalOpen(true);
-    setNewKeyName("");
-    toast.success("New API key created");
+    const token = localStorage.getItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
+
+    try{
+      const {data} = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/merchant/create-api-key`, {
+        name: newKeyName,
+      }, {
+        headers: {
+          Authorization: token
+        }
+      });
+
+      if(data.success){
+        const createdApiKey : ApiKey = {
+          id: data.apiKey.id,
+          name: data.apiKey.name,
+          environment: data.apiKey.environment,
+          createdAt: data.apiKey.createdAt,
+        } 
+        const newCreatedKey : ApiKey = {
+          id: data.apiKey.id,
+          name: data.apiKey.name,
+          environment: data.apiKey.environment,
+          key: data.apiKey.key,
+          createdAt: data.apiKey.createdAt,
+        }
+        setApiKeys([...apiKeys, createdApiKey]);
+        setNewlyCreatedKey(newCreatedKey);
+        setIsCreateModalOpen(false);
+        setIsKeyRevealModalOpen(true);
+        setNewKeyName("");
+        toast.success("New API key created");
+      }else {
+        setIsCreating(false);
+        toast.error("Failed to create API key. Please try again.");
+        return;
+      }
+
+    }catch(err){
+      setIsCreating(false);
+      toast.error("Failed to create API key. Please try again.");
+      return;
+    }
+
   };
 
-  const deleteApiKey = (name: string) => {
-    setApiKeys(apiKeys.filter((key) => key.name !== name));
-    toast.success("API key deleted");
+  const deleteApiKey = async (id: string) => {
+    setDeletingKeyId(id);
+    const token = localStorage.getItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
+    try{
+      const {data} = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/merchant/delete-api-key/${id}`, {
+        headers: {
+          Authorization: token
+        }
+      });
+      if(data.success){
+        setDeletingKeyId(null);
+        setApiKeys(apiKeys.filter((key) => key.id !== id));
+        toast.success("API key deleted");
+      }else{
+        setDeletingKeyId(null);
+        toast.error("Failed to delete API key. Please try again.");
+      }
+    }
+    catch(err){
+      setDeletingKeyId(null);
+      toast.error("Failed to delete API key. Please try again.");
+    }
   };
 
   const copyToClipboard = (key: string) => {
@@ -91,11 +145,6 @@ const ApiKeysSection = ({ fullView = false }: ApiKeysSectionProps) => {
     toast.success("API key copied to clipboard");
     setCopiedKey(key);
     setTimeout(() => setCopiedKey(null), 2000);
-  };
-
-  const maskKey = (key: string) => {
-    if(!key)return "";
-    return key.substring(0, 10) + "•".repeat(20) + key.substring(key.length - 4);
   };
 
   return (
@@ -148,10 +197,15 @@ const ApiKeysSection = ({ fullView = false }: ApiKeysSectionProps) => {
                 <Button
                   size="icon"
                   variant="ghost"
-                  onClick={() => deleteApiKey(apiKey.name)}
+                  onClick={() => deleteApiKey(apiKey.id)}
                   className="h-8 w-8 text-destructive hover:text-destructive"
+                  disabled={deletingKeyId === apiKey.id}
                 >
-                  <Trash2 className="w-4 h-4" />
+                {deletingKeyId === apiKey.id ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
@@ -205,10 +259,18 @@ const ApiKeysSection = ({ fullView = false }: ApiKeysSectionProps) => {
               Cancel
             </Button>
             <Button
+              disabled={isCreating}
               onClick={createApiKey}
               className="bg-gradient-primary hover:opacity-90"
             >
-              Create Key
+              {isCreating ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creating API key
+                </>
+              ) : (
+                "Create Key"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

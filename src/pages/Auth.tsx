@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { Shield, Wallet } from "lucide-react";
+import { Loader2, Shield, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
 
@@ -167,7 +167,14 @@ const Auth = () => {
                 className="w-full bg-gradient-primary hover:opacity-90 transition-opacity shadow-glow"
                 disabled={isLoading}
               >
-                {isLoading ? "Sending..." : "Send OTP"}
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Sending OTP
+                </>
+              ) : (
+                "Send OTP"
+              )}
               </Button>
             </form>
           ) : (
@@ -224,7 +231,14 @@ const Auth = () => {
                   className="flex-1 bg-gradient-primary hover:opacity-90 transition-opacity shadow-glow"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Verifying..." : isExistingUser ? "Login" : "Register"}
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Verifying OTP
+                </>
+              ) : (
+                "Verify OTP"
+              )}
                 </Button>
               </div>
             </form>
