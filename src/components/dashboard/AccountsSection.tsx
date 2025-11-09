@@ -39,7 +39,7 @@ const AccountsSection = ({ fullView = false }: AccountsSectionProps) => {
       setIsLoading(true);
       const fetchAccountsData = async()=>{
         try{
-            const url = fullView ? `${import.meta.env.VITE_BACKEND_URL}/api/merchant/get-merchant-accounts` : `${import.meta.env.VITE_BACKEND_URL}/api/merchant/get-merchant-accounts?limit=3`;
+            const url = fullView ? `${import.meta.env.VITE_BACKEND_URL}/api/merchant/get-merchant-accounts?limit=10` : `${import.meta.env.VITE_BACKEND_URL}/api/merchant/get-merchant-accounts?limit=3`;
             const {data} = await axios.get(url, {
               headers: {
                 Authorization: token

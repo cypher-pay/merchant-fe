@@ -41,7 +41,7 @@ const InvoicesSection = ({ fullView = false }: InvoicesSectionProps) => {
       const fetchInvoicesData = async()=>{
         setIsLoading(true);
         try{
-            const url = fullView ? `${import.meta.env.VITE_BACKEND_URL}/api/merchant/get-merchant-invoices` : `${import.meta.env.VITE_BACKEND_URL}/api/merchant/get-merchant-invoices?limit=3`;
+            const url = fullView ? `${import.meta.env.VITE_BACKEND_URL}/api/merchant/get-merchant-invoices?limit=10` : `${import.meta.env.VITE_BACKEND_URL}/api/merchant/get-merchant-invoices?limit=3`;
             const {data} = await axios.get(url, {
               headers: {
                 Authorization: token

@@ -44,7 +44,7 @@ const ApiKeysSection = ({ fullView = false }: ApiKeysSectionProps) => {
       }
       try {
 
-        const url = fullView ? `${import.meta.env.VITE_BACKEND_URL}/api/merchant/get-merchant-api-keys` : `${import.meta.env.VITE_BACKEND_URL}/api/merchant/get-merchant-api-keys?limit=3`;
+        const url = fullView ? `${import.meta.env.VITE_BACKEND_URL}/api/merchant/get-merchant-api-keys?limit=10` : `${import.meta.env.VITE_BACKEND_URL}/api/merchant/get-merchant-api-keys?limit=3`;
         const { data } = await axios.get(url, {
           headers: {
             Authorization: token
