@@ -11,74 +11,23 @@ export default function ServerSide({copiedCode, setCopiedCode}: {copiedCode: str
 
   const serverSdkCode = {
     nodejs: {
-      install: `npm install @cypherpay/sdk`,
-      init: `import CypherPay from '@cypherpay/sdk';
+      install: `npm install @cypher-pay/nodejs`,
+      init: `import CypherPay from '@cypher-pay/nodejs';
 
-const cypherpay = new CypherPay({
-  apiKey: process.env.CYPHERPAY_API_KEY,
-  environment: 'production'
+const cypherPay = new CypherPay('<Your Cypher Pay API Key>', {
+    baseURL: '<Backend URL of CypherPay>',
+    timeout: 5000,
 });`,
-      createOrder: `const order = await cypherpay.orders.create({
-  amount: 100.00,
-  currency: 'USD',
-  description: 'Payment for services',
-  customerEmail: 'customer@example.com',
-  accountId: process.env.ETHEREUM_ACCOUNT,
-  webhookUrl: 'https://yoursite.com/webhook',
-  returnUrl: 'https://yoursite.com/success'
+      createInvoice: `const invoice = await cypherpay.invoices.create({
+  amount: '<Amount in wei>', // Currently only wei is supported
+  callbackUrl: '<Your webhook URL>', // This should accept a POST request
+  accountName: '<Your account name created in Cypher Pay>',
 });
 
-// Send payment URL to your client
-res.json({ paymentUrl: order.paymentUrl });`
+// Send invoice to your client
+res.json({ invoice });
+`
     },
-    go: {
-      install: `go get github.com/cypherpay/cypherpay-go`,
-      init: `import "github.com/cypherpay/cypherpay-go"
-
-client := cypherpay.NewClient(
-    os.Getenv("CYPHERPAY_API_KEY"),
-    cypherpay.Production,
-)`,
-      createOrder: `order, err := client.Orders.Create(&cypherpay.OrderParams{
-    Amount:        100.00,
-    Currency:      "USD",
-    Description:   "Payment for services",
-    CustomerEmail: "customer@example.com",
-    AccountID:     os.Getenv("ETHEREUM_ACCOUNT"),
-    WebhookURL:    "https://yoursite.com/webhook",
-    ReturnURL:     "https://yoursite.com/success",
-})
-
-if err != nil {
-    log.Fatal(err)
-}
-
-// Send payment URL to your client
-json.NewEncoder(w).Encode(map[string]string{
-    "paymentUrl": order.PaymentURL,
-})`
-    },
-    rust: {
-      install: `cargo add cypherpay`,
-      init: `use cypherpay::{Client, Environment};
-
-let client = Client::new(
-    env::var("CYPHERPAY_API_KEY").unwrap(),
-    Environment::Production,
-);`,
-      createOrder: `let order = client.orders().create(OrderParams {
-    amount: 100.0,
-    currency: "USD".to_string(),
-    description: "Payment for services".to_string(),
-    customer_email: "customer@example.com".to_string(),
-    account_id: env::var("ETHEREUM_ACCOUNT").unwrap(),
-    webhook_url: "https://yoursite.com/webhook".to_string(),
-    return_url: "https://yoursite.com/success".to_string(),
-}).await?;
-
-// Send payment URL to your client
-Json(json!({ "paymentUrl": order.payment_url }))`
-    }
   };
     return (
         <TabsContent value="server" className="space-y-6">
@@ -93,8 +42,6 @@ Json(json!({ "paymentUrl": order.payment_url }))`
                 <Tabs value={selectedServerLang} onValueChange={setSelectedServerLang}>
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="nodejs">Node.js</TabsTrigger>
-                    <TabsTrigger value="go">Go</TabsTrigger>
-                    <TabsTrigger value="rust">Rust</TabsTrigger>
                   </TabsList>
 
                   {Object.keys(serverSdkCode).map((lang) => (
@@ -144,11 +91,11 @@ Json(json!({ "paymentUrl": order.payment_url }))`
                       {/* Create Order */}
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-sm font-semibold text-foreground">3. Create Payment Order</h3>
+                          <h3 className="text-sm font-semibold text-foreground">3. Create Invoice for an Order</h3>
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => copyToClipboard(serverSdkCode[lang as keyof typeof serverSdkCode].createOrder, `${lang}-order`, setCopiedCode)}
+                            onClick={() => copyToClipboard(serverSdkCode[lang as keyof typeof serverSdkCode].createInvoice, `${lang}-order`, setCopiedCode)}
                           >
                             {copiedCode === `${lang}-order` ? (
                               <CheckCircle2 className="w-4 h-4 text-success" />
@@ -158,7 +105,7 @@ Json(json!({ "paymentUrl": order.payment_url }))`
                           </Button>
                         </div>
                         <div className="bg-secondary/50 rounded-lg p-4 font-mono text-sm">
-                          <pre className="text-accent whitespace-pre-wrap">{serverSdkCode[lang as keyof typeof serverSdkCode].createOrder}</pre>
+                          <pre className="text-accent whitespace-pre-wrap">{serverSdkCode[lang as keyof typeof serverSdkCode].createInvoice}</pre>
                         </div>
                       </div>
 
@@ -175,7 +122,7 @@ Json(json!({ "paymentUrl": order.payment_url }))`
                 <div className="mt-6 pt-6 border-t border-border">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Code className="w-4 h-4" />
-                    <span>SDKs for Python, Ruby, PHP, and Java are</span>
+                    <span>SDKs for Go, Rust, Python, Ruby, PHP, and Java are</span>
                     <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
                   </div>
                 </div>
