@@ -86,7 +86,7 @@ const InvoicesSection = ({ fullView = false }: InvoicesSectionProps) => {
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold text-foreground">
-              {weiToEther(totalEarnings.toString())} ETH
+              {weiToEther(totalEarnings?.toString())} ETH
             </div>
             <div className="flex items-center gap-1 text-sm text-success">
               <TrendingUp className="w-4 h-4" />
@@ -176,7 +176,7 @@ const InvoicesSection = ({ fullView = false }: InvoicesSectionProps) => {
                       <span className="text-sm text-muted-foreground">Fee:</span>
                       <div className="flex items-center gap-1">
                         <span className="text-sm text-foreground">
-                          {invoice.fee.toString()} %
+                          {invoice.fee ? `${invoice.fee.toString()} %` : `NA`}
                         </span>
                       </div>
                     </div>
