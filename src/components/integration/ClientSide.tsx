@@ -18,9 +18,21 @@ export default function ClientSide({copiedCode, setCopiedCode}: {copiedCode: str
 <!-- Initiate the cypherPay sdk in the <script> tag -->
 
 <script>
-// Initialize the CypherPay SDK
+
+/* 
+Initialize the CypherPay SDK with required parameters
+
+@parmas checkoutHost : URL of the CypherPay modal (provided by CypherPay)
+@parmas onClose : (optional) callback function when the modal is closed
+@parmas onError : (optional) callback function when an error occurs when fetching invoice details
+@parmas onProcessing : (optional) callback function when the payment is sent to the blockchain
+
+*/
 const cypherPay = new CypherPay({
     checkoutHost: 'URL of the CypherPay modal',
+    onClose: ()=>void, 
+    onError: (error : {type : 'FETCHING_INVOICE_DETAILS', message : string})=> void,
+    onProcessing: (data : {hash : string})=> void
 });
 
 /* 
