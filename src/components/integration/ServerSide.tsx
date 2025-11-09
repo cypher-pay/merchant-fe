@@ -40,7 +40,7 @@ res.json({ invoice });
               </CardHeader>
               <CardContent>
                 <Tabs value={selectedServerLang} onValueChange={setSelectedServerLang}>
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-1">
                     <TabsTrigger value="nodejs">Node.js</TabsTrigger>
                   </TabsList>
 
