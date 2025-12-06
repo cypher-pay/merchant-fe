@@ -84,6 +84,7 @@ const InvoicesSection = ({ fullView = false }: InvoicesSectionProps) => {
               <CardDescription>Track your payment history</CardDescription>
             </div>
           </div>
+          {invoices.length > 0 ? (
           <div className="text-right">
             <div className="text-2xl font-bold text-foreground">
               {weiToEther(totalEarnings?.toString())} ETH
@@ -92,7 +93,8 @@ const InvoicesSection = ({ fullView = false }: InvoicesSectionProps) => {
               <TrendingUp className="w-4 h-4" />
               <span>Total Paid</span>
             </div>
-          </div>
+          </div>) : null
+          }
         </div>
       </CardHeader>
       <CardContent>
@@ -113,121 +115,136 @@ const InvoicesSection = ({ fullView = false }: InvoicesSectionProps) => {
                 </div>
               ))}
             </>
-          ) : (
-            <TooltipProvider>
-              {(fullView ? invoices : invoices.slice(0, 3)).map((invoice) => (
-                <div
-                  key={invoice.invoiceId}
-                  className="p-4 rounded-lg bg-secondary/50 border border-border/50 hover:border-primary/50 transition-colors"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs text-muted-foreground">
-                        {truncateHash(invoice.invoiceId)}
-                      </span>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground transition-colors" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs break-all">
-                          <p className="font-mono text-xs">{invoice.invoiceId}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <Badge
-                      variant={
-                        invoice.status === "CONFIRMED"
-                          ? "default"
-                          : invoice.status === "PENDING"
-                          ? "secondary"
-                          : invoice.status === "PAYMENT_PROCESSING"
-                          ? "secondary"
-                          : "destructive"
-                      }
-                      className={
-                        invoice.status === "CONFIRMED"
-                          ? "bg-success/20 text-success border-success/30"
-                          : ""
-                      }
-                    >
-                      {invoice.status}
-                    </Badge>
+          ) : 
+          <>
+            {invoices.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                    <FileText className="w-8 h-8 text-muted-foreground" />
                   </div>
-
-                  <div className="space-y-2 mb-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Amount:</span>
-                      <div className="flex items-center gap-1">
-                        <span className="text-lg font-bold text-foreground">
-                          {weiToEther(invoice.amount)} ETH
-                        </span>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground transition-colors" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="font-mono text-xs">{invoice.amount} wei</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Fee:</span>
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm text-foreground">
-                          {invoice.fee ? `${invoice.fee.toString()} %` : `NA`}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Token:</span>
-                      <div className="flex items-center gap-1">
-                        <span className="font-mono text-xs text-foreground">
-                          {truncateHash(invoice.tokenAddress, 6, 4)}
-                        </span>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground transition-colors" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="font-mono text-xs">{invoice.tokenAddress}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Account:</span>
-                      <span className="text-sm text-foreground font-medium">
-                        {invoice.accountName}
-                      </span>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(invoice.createdAt).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                  <h3 className="text-lg font-medium text-foreground mb-2">No invoices yet</h3>
+                  <p className="text-sm text-muted-foreground max-w-sm">
+                    Your payment history will appear here once you start receiving payments
                   </p>
                 </div>
-              ))}
-              {!fullView && invoices.length > 3 && (
-                <Button
-                  variant="outline"
-                  className="w-full mt-4"
-                  onClick={() => (window.location.href = "/dashboard/invoices")}
-                >
-                  Show More ({invoices.length - 3} more)
-                </Button>
-              )}
-            </TooltipProvider>
-          )}
+            ) :
+            (
+              <TooltipProvider>
+                {(fullView ? invoices : invoices.slice(0, 3)).map((invoice) => (
+                  <div
+                    key={invoice.invoiceId}
+                    className="p-4 rounded-lg bg-secondary/50 border border-border/50 hover:border-primary/50 transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs text-muted-foreground">
+                          {truncateHash(invoice.invoiceId)}
+                        </span>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Info className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground transition-colors" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs break-all">
+                            <p className="font-mono text-xs">{invoice.invoiceId}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <Badge
+                        variant={
+                          invoice.status === "CONFIRMED"
+                            ? "default"
+                            : invoice.status === "PENDING"
+                            ? "secondary"
+                            : invoice.status === "PAYMENT_PROCESSING"
+                            ? "secondary"
+                            : "destructive"
+                        }
+                        className={
+                          invoice.status === "CONFIRMED"
+                            ? "bg-success/20 text-success border-success/30"
+                            : ""
+                        }
+                      >
+                        {invoice.status}
+                      </Badge>
+                    </div>
+
+                    <div className="space-y-2 mb-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Amount:</span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-lg font-bold text-foreground">
+                            {weiToEther(invoice.amount)} ETH
+                          </span>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Info className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground transition-colors" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="font-mono text-xs">{invoice.amount} wei</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Fee:</span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-sm text-foreground">
+                            {invoice.fee ? `${invoice.fee.toString()} %` : `NA`}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Token:</span>
+                        <div className="flex items-center gap-1">
+                          <span className="font-mono text-xs text-foreground">
+                            {truncateHash(invoice.tokenAddress, 6, 4)}
+                          </span>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Info className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground transition-colors" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="font-mono text-xs">{invoice.tokenAddress}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Account:</span>
+                        <span className="text-sm text-foreground font-medium">
+                          {invoice.accountName}
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(invoice.createdAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                ))}
+                {!fullView && invoices.length > 3 && (
+                  <Button
+                    variant="outline"
+                    className="w-full mt-4"
+                    onClick={() => (window.location.href = "/dashboard/invoices")}
+                  >
+                    Show More ({invoices.length - 3} more)
+                  </Button>
+                )}
+              </TooltipProvider>
+            )}
+          </>
+          }
         </div>
       </CardContent>
     </Card>
