@@ -34,7 +34,7 @@ const AccountsSection = ({ fullView = false }: AccountsSectionProps) => {
   useEffect(() => {
     const token = localStorage.getItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
     if (!token) {
-      navigate("/auth");
+      navigate("/");
     } else {
       setIsLoading(true);
       const fetchAccountsData = async()=>{
@@ -52,13 +52,13 @@ const AccountsSection = ({ fullView = false }: AccountsSectionProps) => {
                 localStorage.removeItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
                 toast.error("Failed to fetch your data. Please login again.");
                 setIsLoading(false);
-                navigate("/auth");
+                navigate("/");
             }
         }catch(err){
             localStorage.removeItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
             toast.error("Failed to fetch your data. Please login again.");
             setIsLoading(false);
-            navigate("/auth");
+            navigate("/");
         }
       }
 

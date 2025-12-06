@@ -39,7 +39,7 @@ const ApiKeysSection = ({ fullView = false }: ApiKeysSectionProps) => {
       const token = localStorage.getItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
       if (!token) {
         toast.error("Authentication token missing. Please login again.");
-        navigate('/auth');
+        navigate('/');
         return;
       }
       try {

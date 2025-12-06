@@ -35,7 +35,7 @@ const InvoicesSection = ({ fullView = false }: InvoicesSectionProps) => {
       const token = localStorage.getItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
       if(!token){
           toast.error("Authentication token missing. Please login again.");
-          navigate("/auth");
+          navigate("/");
           return;
       }
       const fetchInvoicesData = async()=>{
@@ -54,13 +54,13 @@ const InvoicesSection = ({ fullView = false }: InvoicesSectionProps) => {
                 setIsLoading(false);
                 localStorage.removeItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
                 toast.error("Failed to fetch your data. Please login again.");
-                navigate("/auth");
+                navigate("/");
             }
         }catch(err){
             setIsLoading(false);
             localStorage.removeItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
             toast.error("Failed to fetch your data. Please login again.");
-            navigate("/auth");
+            navigate("/");
         }
       }
 
