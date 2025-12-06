@@ -198,6 +198,17 @@ const AccountsSection = ({ fullView = false }: AccountsSectionProps) => {
               </div>
             ))}
           </>
+        ) : <>
+        {accounts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                  <Wallet className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-medium text-foreground mb-2">No accounts yet</h3>
+                <p className="text-sm text-muted-foreground max-w-sm">
+                  Add your first wallet account to start receiving payments
+                </p>
+              </div>
         ) : (
           <>
             {(fullView ? accounts : accounts.slice(0, 3)).map((account) => (
@@ -227,6 +238,7 @@ const AccountsSection = ({ fullView = false }: AccountsSectionProps) => {
             )}
           </>
         )}
+        </>}
       </CardContent>
     </Card>
   );

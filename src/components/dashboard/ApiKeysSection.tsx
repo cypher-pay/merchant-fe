@@ -185,45 +185,58 @@ const ApiKeysSection = ({ fullView = false }: ApiKeysSectionProps) => {
                 </div>
               ))}
             </>
-          ) : (
+          ) :
             <>
-              {(fullView ? apiKeys : apiKeys.slice(0, 3)).map((apiKey) => (
-            <div
-              key={apiKey.name}
-              className="p-4 rounded-lg bg-secondary/50 border border-border/50 space-y-2 hover:border-primary/50 transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-foreground">{apiKey.name}</span>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => deleteApiKey(apiKey.id)}
-                  className="h-8 w-8 text-destructive hover:text-destructive"
-                  disabled={deletingKeyId === apiKey.id}
-                >
-                {deletingKeyId === apiKey.id ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Trash2 className="w-4 h-4" />
-                  )}
-                </Button>
+            {apiKeys.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                    <Key className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-medium text-foreground mb-2">No API keys yet</h3>
+                  <p className="text-sm text-muted-foreground max-w-sm">
+                    Create your first API key to start integrating with your application
+                  </p>
+                </div>
+              ) : (
+              <>
+                {(fullView ? apiKeys : apiKeys.slice(0, 3)).map((apiKey) => (
+              <div
+                key={apiKey.name}
+                className="p-4 rounded-lg bg-secondary/50 border border-border/50 space-y-2 hover:border-primary/50 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-foreground">{apiKey.name}</span>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => deleteApiKey(apiKey.id)}
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                    disabled={deletingKeyId === apiKey.id}
+                  >
+                  {deletingKeyId === apiKey.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Created {new Date(apiKey.createdAt).toLocaleDateString()}
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Created {new Date(apiKey.createdAt).toLocaleDateString()}
-              </p>
-            </div>
-              ))}
-              {!fullView && apiKeys.length > 3 && (
-            <Button
-              variant="outline"
-              className="w-full mt-4"
-              onClick={() => window.location.href = "/dashboard/api-keys"}
-            >
-              Show More ({apiKeys.length - 3} more)
-            </Button>
-              )}
-            </>
-          )}
+                ))}
+                {!fullView && apiKeys.length > 3 && (
+              <Button
+                variant="outline"
+                className="w-full mt-4"
+                onClick={() => window.location.href = "/dashboard/api-keys"}
+              >
+                Show More ({apiKeys.length - 3} more)
+              </Button>
+                )}
+              </>
+            )}
+          </>}
         </CardContent>
       </Card>
 
