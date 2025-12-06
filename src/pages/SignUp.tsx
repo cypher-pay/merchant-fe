@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Shield, Wallet, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
+import { useAuthRedirect } from "@/hooks/useLoginRedirect";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const SignUp = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  useAuthRedirect();
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
