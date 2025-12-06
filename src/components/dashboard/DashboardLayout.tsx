@@ -16,7 +16,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const handleLogout = () => {
     localStorage.removeItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
     toast.success("Logged out successfully");
-    navigate("/auth");
+    navigate("/");
   };
 
   const navItems = [

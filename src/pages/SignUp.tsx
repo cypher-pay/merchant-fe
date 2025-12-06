@@ -7,10 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Shield, Wallet, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import axios from "axios";
 
 const SignUp = () => {
   const navigate = useNavigate();
-  const [countryCode, setCountryCode] = useState("+1");
+  const [countryCode, setCountryCode] = useState("+91");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -43,36 +44,28 @@ const SignUp = () => {
     }
 
     setIsLoading(true);
-    
-    // Simulate registration
-    setTimeout(() => {
+    try{
       const fullPhone = countryCode + phoneNumber;
-      const merchants = JSON.parse(localStorage.getItem("merchants") || "[]");
-      
-      // Check if user already exists
-      const existingMerchant = merchants.find((m: any) => m.phone === fullPhone);
-      if (existingMerchant) {
-        toast.error("An account with this phone number already exists");
+      const { data } = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/signup`, {
+        phoneNumber: fullPhone,
+        name: name.trim(),
+        password: password,
+        repeatPassword: confirmPassword
+      });
+      if(data.success){
+        localStorage.setItem(import.meta.env.VITE_AUTH_TOKEN_KEY, `Bearer ${data.token}`);
+        toast.success("Account created successfully");
         setIsLoading(false);
-        return;
+        navigate("/dashboard");
+      }else {
+        toast.error(data.message || "Failed to sign up. Please try again.");
+        setIsLoading(false);
       }
       
-      // Register new merchant
-      const newMerchant = {
-        id: Date.now().toString(),
-        name: name.trim(),
-        phone: fullPhone,
-        password,
-        createdAt: new Date().toISOString(),
-      };
-      
-      merchants.push(newMerchant);
-      localStorage.setItem("merchants", JSON.stringify(merchants));
-      localStorage.setItem("currentMerchant", JSON.stringify(newMerchant));
-      toast.success("Account created successfully!");
-      navigate("/dashboard");
+    }catch(err){
+      toast.error("Failed to sign up. Please try again.");
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (

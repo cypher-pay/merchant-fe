@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Shield, Wallet, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import axios from "axios";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -25,27 +26,30 @@ const SignIn = () => {
     }
 
     if (!password) {
-      toast.error("Please enter your password");
+      toast.error("Please enter a password");
       return;
     }
 
     setIsLoading(true);
-    
-    // Simulate authentication
-    setTimeout(() => {
+    try{
       const fullPhone = countryCode + phoneNumber;
-      const merchants = JSON.parse(localStorage.getItem("merchants") || "[]");
-      const merchant = merchants.find((m: any) => m.phone === fullPhone && m.password === password);
-      
-      if (merchant) {
-        localStorage.setItem("currentMerchant", JSON.stringify(merchant));
-        toast.success("Welcome back!");
+      const { data } = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/signin`, {
+        phoneNumber: fullPhone,
+        password: password
+      });
+      if(data.success){
+        localStorage.setItem(import.meta.env.VITE_AUTH_TOKEN_KEY, `Bearer ${data.token}`);
+        toast.success("Signed in successfully");
+        setIsLoading(false);
         navigate("/dashboard");
-      } else {
-        toast.error("Invalid phone number or password");
+      }else {
+        toast.error(data.message || "Failed to sign in. Please try again.");
+        setIsLoading(false);
       }
+    }catch(err){
+      toast.error("Failed to sign in. Please try again.");
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
