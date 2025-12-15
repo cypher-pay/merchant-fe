@@ -1,5 +1,7 @@
-# Mechant Frontend
-This is the frontend application for the Cypher Pay merchant platform.
+# Merchant Frontend
+This is the frontend application for the Cypher Pay merchant platform. Here the merchants can manage their Accounts, manage their ApiKeys and view their Invoices.
+
+Currently, this application also has the Documentation for the Cypher Pay API integrated within it.
 
 ## Setup 
 ### Prerequisites
